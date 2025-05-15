@@ -1,0 +1,47 @@
+#import "./fragments.graphql"
+
+mutation getEvent($id: ID!) {
+  getEvent(id: $id) {
+    title
+    start
+    end
+    description
+    createdAt
+    updatedAt
+    venue
+    hosted_by
+    contact_number
+    number_of_attendees
+    speaker
+    createdBy {
+      username
+    }
+  }
+}
+
+query getEvents($filter: FilterInput) {
+  eventsData(filterInput: $filter) {
+    ...Events
+  }
+}
+
+query getUser($id: ID!) {
+  getUser(id: $id) {
+    ...UserFull
+  }
+}
+
+query getUserEvents($id: ID!, $filter: PaginationFilter) {
+  getUserEvents(id: $id, paginationFilter: $filter) {
+    ...Events
+  }
+}
+
+query login($login: LoginInput!) {
+  login(loginInput: $login) {
+    userId
+    username
+    token
+    tokenExpiration
+  }
+}

@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Use Node 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install project
+        run: yarn install
+
+      - name: Build project
+        run: yarn run build --if-present
+
+      - name: Delete build artifact
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: build-artifact
+
+      - name: Upload build artifact
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: build-artifact
+          path: |
+            build
+            node_modules
+            package.json
+            yarn.lock
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download build artifact
+        uses: ./.github/actions/download-artifact
+        with:
+          name: build-artifact
+
+      - name: Run lint
+        run: yarn lint
+
+  compile:
+    name: Compile
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download build artifact
+        uses: ./.github/actions/download-artifact
+        with:
+          name: build-artifact
+
+      - name: Run tsc
+        uses: icrawl/action-tsc@v1
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download build artifact
+        uses: ./.github/actions/download-artifact
+        with:
+          name: build-artifact
+
+      - name: Run tests
+        run: yarn test
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download build artifact
+        uses: ./.github/actions/download-artifact
+        with:
+          name: build-artifact
+
+      - name: Run tests coverage
+        run: yarn test:coverage
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
