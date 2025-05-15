@@ -8,7 +8,7 @@ import Pagination from '../../../components/Pagination/Pagination'
 import AuthContext from '../../../store/auth-context'
 import Modal from '../../../components/UI/Modal/Modal'
 import EventBody, { EventType } from '../../../components/EventBody/EventBody'
-import { Form } from 'react-bootstrap'
+import { Form, Row, Col, Button } from 'react-bootstrap'
 import {
   EventFull,
   useDeleteEventMutation,
@@ -21,6 +21,8 @@ import { ServerErrorAlert } from '../../../components/ServerErrorAlert/ServerErr
 import toast from 'react-hot-toast'
 import { removeEvent } from '../../../utils/apolloCache'
 import { DateTime } from 'luxon'
+import EventRegistration from '../../../components/EventRegistration'
+import EventAttendees from '../../../components/EventAttendees'
 
 const EVENTS_PER_PAGE = 15
 
@@ -183,11 +185,31 @@ function SearchEvents() {
       contact_number,
       number_of_attendees,
       speaker,
+      attendees: [], // Initialize with empty array
     })
+    
     setModal({
       title: isTheOwner ? 'Edit Event' : 'Event (read only)',
       show: true,
     })
+    
+    // If we have an event ID, fetch attendees
+    if (id) {
+      fetch(`/api/attendees/${id}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.attendees) {
+            // Update the event with attendees data
+            setEvent(prevEvent => ({
+              ...prevEvent,
+              attendees: data.attendees
+            }));
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching attendees:', error);
+        });
+    }
   }
 
   const handleDeleteEvent = async () => {
@@ -436,7 +458,8 @@ function SearchEvents() {
         onDelete={handleDeleteEvent}
         onSubmit={handleSaveEvent}
       >
-        <EventBody
+        <ModalBody 
+          auth={auth}
           event={event}
           disableEdit={!isTheOwner()}
           onChangeValue={(prop, value) => onChangeValueHandler(prop, value)}
@@ -459,3 +482,89 @@ export const EventCardWrapper = styled.div({
 })
 
 export default SearchEvents
+
+// ModalBody component for SearchEvents
+interface ModalBodyProps {
+  auth: any;
+  event: EventType;
+  disableEdit: boolean;
+  onChangeValue: (prop: string, value: string | boolean) => void;
+  onValidate: (valid: boolean) => void;
+}
+
+const ModalBody = ({
+  auth,
+  event,
+  disableEdit,
+  onChangeValue,
+  onValidate,
+}: ModalBodyProps) => {
+  const [showRegistration, setShowRegistration] = useState(false);
+  
+  // Calculate available spots if we have the necessary data
+  const attendeeCount = event.attendees?.length || 0;
+  const maxAttendees = event.number_of_attendees || 0;
+  const availableSpots = Math.max(0, maxAttendees - attendeeCount);
+  
+  // Determine if user is the event owner
+  const isEventOwner = auth && auth.userId === event.createdById && event.id;
+  
+  // Only allow registration for events that aren't being created/edited and have spots
+  const canRegister = event.id && disableEdit && availableSpots > 0 && !isEventOwner;
+  
+  // Hide the event details when showing the registration form
+  if (showRegistration && event.id) {
+    return (
+      <EventRegistration 
+        eventId={event.id}
+        availableSpots={availableSpots}
+        onSuccess={() => setShowRegistration(false)}
+      />
+    );
+  }
+  
+  return (
+    <div>
+      {canRegister && !showRegistration && (
+        <Row className="mb-4">
+          <Col className="d-flex justify-content-center">
+            <Alert
+              type="info"
+              dismissible={false}
+              msg={`This event has ${availableSpots} ${availableSpots === 1 ? 'spot' : 'spots'} available.`}
+              btn={
+                <Button 
+                  variant="success" 
+                  size="lg"
+                  onClick={() => setShowRegistration(true)}
+                >
+                  Register for this Event
+                </Button>
+              }
+            />
+          </Col>
+        </Row>
+      )}
+      
+      {(attendeeCount >= maxAttendees && maxAttendees > 0) && !isEventOwner && (
+        <Alert
+          type="warning"
+          dismissible={false}
+          msg="This event is at full capacity. Registration is closed."
+        />
+      )}
+      
+      <EventBody
+        event={event}
+        disableEdit={disableEdit}
+        onChangeValue={onChangeValue}
+        onValidate={onValidate}
+      />
+      
+      {/* Show attendees list for event owners */}
+      {isEventOwner && event.id && (
+        <EventAttendees eventId={event.id} />
+      )}
+    </div>
+  );
+}

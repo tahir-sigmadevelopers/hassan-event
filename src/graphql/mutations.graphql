@@ -24,3 +24,25 @@ mutation signup($signup: UserInput!) {
 mutation deleteEvent($id: ID!) {
   deleteEvent(id: $id)
 }
+
+mutation getEvent($id: ID!) {
+  getEvent(id: $id) {
+    ...EventFull
+  }
+}
+
+mutation registerForEvent($attendee: AttendeeInput!) {
+  registerForEvent(attendee: $attendee) {
+    id
+    name
+    email
+    phone
+    event
+    status
+    additionalInfo
+  }
+}
+
+mutation cancelRegistration($id: ID!) {
+  cancelRegistration(id: $id)
+}

@@ -22,8 +22,11 @@ import toast from 'react-hot-toast'
 import { removeEvent } from '../../utils/apolloCache'
 import client from '../../apollo'
 import { DateTime } from 'luxon'
-import { Button } from 'react-bootstrap'
+import { Button, Row, Col } from 'react-bootstrap'
 import LoginContainer from '../user/LoginContainer/LoginContainer'
+import EventRegistration from '../../components/EventRegistration'
+import EventAttendees from '../../components/EventAttendees'
+import { useGetEventAttendeesQuery } from '../../interfaces/graphql-types'
 
 interface ModalBodyType {
   auth: IAuth | null
@@ -263,6 +266,7 @@ function Calendar() {
     } = clickInfo.event.extendedProps
 
     setEvent({
+      id: clickInfo.event.id,
       title,
       start,
       end,
@@ -274,11 +278,28 @@ function Calendar() {
       contact_number,
       number_of_attendees,
       speaker,
+      attendees: [],
     })
     setModal({
       title: isTheOwner ? 'Edit Event' : 'Event (read only)',
       show: true,
     })
+
+    if (clickInfo.event.id) {
+      fetch(`/api/attendees/${clickInfo.event.id}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.attendees) {
+            setEvent(prevEvent => ({
+              ...prevEvent,
+              attendees: data.attendees
+            }));
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching attendees:', error);
+        });
+    }
   }
 
   const handleDeleteEvent = async () => {
@@ -406,28 +427,89 @@ const ModalBody = ({
   onChangeValue,
   onValidate,
   onLogin,
-}: ModalBodyType) => (
-  <div>
-    {!auth && (
-      <Alert
-        msg='You must login to be able to add or edit events.'
-        type='warning'
-        dismissible={false}
-        btn={
-          <Button variant='primary' size='sm' type='button' onClick={onLogin}>
-            Login
-          </Button>
-        }
+}: ModalBodyType) => {
+  const [showRegistration, setShowRegistration] = useState(false);
+  
+  // Calculate available spots if we have the necessary data
+  const attendeeCount = event.attendees?.length || 0;
+  const maxAttendees = event.number_of_attendees || 0;
+  const availableSpots = Math.max(0, maxAttendees - attendeeCount);
+  
+  // Determine if user is the event owner
+  const isEventOwner = auth && auth.userId === event.createdById && event.id;
+  
+  // Only allow registration for events that aren't being created/edited and have spots
+  const canRegister = event.id && disableEdit && availableSpots > 0 && !isEventOwner;
+  
+  // Hide the event details when showing the registration form
+  if (showRegistration && event.id) {
+    return (
+      <EventRegistration 
+        eventId={event.id}
+        availableSpots={availableSpots}
+        onSuccess={() => setShowRegistration(false)}
       />
-    )}
-    <EventBody
-      event={event}
-      disableEdit={disableEdit}
-      onChangeValue={onChangeValue}
-      onValidate={onValidate}
-    />
-  </div>
-)
+    );
+  }
+  
+  return (
+    <div>
+      {!auth && (
+        <Alert
+          msg='You must login to be able to add or edit events.'
+          type='warning'
+          dismissible={false}
+          btn={
+            <Button variant='primary' size='sm' type='button' onClick={onLogin}>
+              Login
+            </Button>
+          }
+        />
+      )}
+      
+      {canRegister && !showRegistration && (
+        <Row className="mb-4">
+          <Col className="d-flex justify-content-center">
+            <Alert
+              type="info"
+              dismissible={false}
+              msg={`This event has ${availableSpots} ${availableSpots === 1 ? 'spot' : 'spots'} available.`}
+              btn={
+                <Button 
+                  variant="success" 
+                  size="lg"
+                  onClick={() => setShowRegistration(true)}
+                >
+                  Register for this Event
+                </Button>
+              }
+            />
+          </Col>
+        </Row>
+      )}
+      
+      {(attendeeCount >= maxAttendees && maxAttendees > 0) && !isEventOwner && (
+        <Alert
+          type="warning"
+          dismissible={false}
+          msg="This event is at full capacity. Registration is closed."
+        />
+      )}
+      
+      <EventBody
+        event={event}
+        disableEdit={disableEdit}
+        onChangeValue={onChangeValue}
+        onValidate={onValidate}
+      />
+      
+      {/* Show attendees list for event owners */}
+      {isEventOwner && event.id && (
+        <EventAttendees eventId={event.id} />
+      )}
+    </div>
+  );
+}
 
 export const FullCalendarWrapper = styled.div`
   a.fc-event,

@@ -53,7 +53,23 @@ const schema = new Schema<IEvent>(
       ref: 'User',
     },
   },
-  { timestamps: true },
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  },
 )
+
+// Virtual for attendees
+schema.virtual('attendees', {
+  ref: 'Attendee',
+  localField: '_id',
+  foreignField: 'event'
+})
+
+// Virtual for available spots
+schema.virtual('availableSpots').get(function(this: any) {
+  return Math.max(0, this.number_of_attendees - (this.attendees?.length || 0));
+});
 
 export const EventModel = model<IEvent>('Event', schema)

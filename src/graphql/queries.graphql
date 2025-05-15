@@ -45,3 +45,34 @@ query login($login: LoginInput!) {
     tokenExpiration
   }
 }
+
+query eventsData($filterInput: FilterInput!) {
+  eventsData(filterInput: $filterInput) {
+    ...Events
+  }
+}
+
+query getUserEvents(
+  $id: ID!
+  $paginationFilter: PaginationFilter!
+  $isLogin: Boolean!
+) {
+  getUserEvents(id: $id, paginationFilter: $paginationFilter) @include(if: $isLogin) {
+    ...Events
+  }
+}
+
+query login($loginInput: LoginInput!) {
+  login(loginInput: $loginInput) {
+    userId
+    username
+    token
+    tokenExpiration
+  }
+}
+
+query getEventAttendees($eventId: ID!) {
+  getEventAttendees(eventId: $eventId) {
+    ...Attendee
+  }
+}

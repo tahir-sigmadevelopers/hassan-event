@@ -3,6 +3,15 @@ import { useEffect, useState, ChangeEvent, FC, useContext } from 'react'
 import AuthContext from '../../store/auth-context'
 import Alert from '../UI/Alert/Alert'
 
+// Define an interface for attendees
+export interface EventAttendee {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+}
+
 export type EventType = {
   id?: string
   title: string
@@ -16,6 +25,7 @@ export type EventType = {
   contact_number: string
   number_of_attendees: number
   speaker: string
+  attendees?: EventAttendee[]
 }
 
 type Props = {

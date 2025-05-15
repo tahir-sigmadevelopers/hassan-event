@@ -38,6 +38,20 @@ export const typeDefs = gql`
     contact_number: String!
     number_of_attendees: Float
     speaker: String!
+    attendees: [Attendee!]
+    availableSpots: Int
+  }
+
+  type Attendee {
+    id: ID!
+    name: String!
+    email: String!
+    phone: String!
+    event: ID!
+    status: String!
+    additionalInfo: String
+    createdAt: Float
+    updatedAt: Float
   }
 
   type Events {
@@ -87,6 +101,14 @@ export const typeDefs = gql`
     speaker: String!
   }
 
+  input AttendeeInput {
+    name: String!
+    email: String!
+    phone: String!
+    event: ID!
+    additionalInfo: String
+  }
+
   input FilterInput {
     searchText: String
     startDate: String
@@ -108,6 +130,7 @@ export const typeDefs = gql`
     getUserEvents(id: ID!, paginationFilter: PaginationFilter): Events!
     eventsData(filterInput: FilterInput): Events!
     login(loginInput: LoginInput!): Auth!
+    getEventAttendees(eventId: ID!): [Attendee!]!
   }
 
   type Mutation {
@@ -116,5 +139,8 @@ export const typeDefs = gql`
     saveEvent(event: EventInput!): EventFull!
     getEvent(id: ID!): EventFull!
     deleteEvent(id: ID!): Boolean!
+    registerForEvent(attendee: AttendeeInput!): Attendee!
+    updateAttendeeStatus(id: ID!, status: String!): Attendee!
+    cancelRegistration(id: ID!): Boolean!
   }
 `

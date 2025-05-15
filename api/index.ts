@@ -11,13 +11,14 @@ import cookieParser from 'cookie-parser'
 import http from 'http'
 
 import { connect, set } from 'mongoose'
-import { rootValue } from './graphql/resolvers'
+import { resolvers } from './graphql/resolvers'
 import { typeDefs } from './graphql/schema'
 import { json, urlencoded } from 'body-parser'
 
 import { constants } from './config/constants'
 import { context } from './middleware/auth'
 import { IContext } from './interfaces/types'
+import attendeesRoute from './routes/attendees'
 
 dotenv.config()
 
@@ -42,6 +43,9 @@ app.use(compression())
 app.use(json())
 app.use(urlencoded({ extended: true }))
 
+// API Routes
+app.use('/api/attendees', attendeesRoute)
+
 app.use('/', express.static(`${__dirname}/../build`))
 
 app.get('*', (req, res) => {
@@ -52,7 +56,7 @@ const startServer = async () => {
   const httpServer = http.createServer(app)
   const apolloServer = new ApolloServer<IContext>({
     typeDefs,
-    rootValue,
+    resolvers,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   })
 

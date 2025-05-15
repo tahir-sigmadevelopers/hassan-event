@@ -16,6 +16,16 @@ export interface IEvent {
   contact_number: string
 }
 
+export interface IAttendee {
+  id?: string
+  name: string
+  email: string
+  phone: string
+  event: Types.ObjectId
+  status: 'registered' | 'attended' | 'cancelled'
+  additionalInfo?: string
+}
+
 export interface IUser {
   username: string
   password: string

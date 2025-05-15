@@ -1,3 +1,5 @@
+#import "./fragments.graphql"
+
 fragment UserFull on UserFull {
   _id
   username
@@ -29,6 +31,26 @@ fragment EventFull on EventFull {
     _id
     username
   }
+  attendees {
+    id
+    name
+    email
+    phone
+    status
+  }
+  availableSpots
+}
+
+fragment Attendee on Attendee {
+  id
+  name
+  email
+  phone
+  event
+  status
+  additionalInfo
+  createdAt
+  updatedAt
 }
 
 fragment Events on Events {
@@ -52,5 +74,6 @@ fragment Events on Events {
       _id
       username
     }
+    availableSpots
   }
 }
