@@ -65,52 +65,6 @@ const defaultMessages: Message[] = [
   }
 ];
 
-// Basic button styling without conditional classes
-const BasicChatBotButton = styled(Button)`
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #007bff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  
-  &:hover {
-    background-color: #0069d9;
-  }
-`;
-
-// Pulsing button that extends the basic button
-const PulsingChatBotButton = styled(BasicChatBotButton)`
-  animation: pulse 2s infinite;
-`;
-
-// Simplified button component without conditional rendering
-const ChatBotButton: React.FC<{
-  onClick: () => void;
-  hasBadge: boolean;
-}> = ({ onClick, hasBadge }) => (
-  hasBadge ? (
-    <PulsingChatBotButton onClick={onClick}>
-      <FaRobot />
-    </PulsingChatBotButton>
-  ) : (
-    <BasicChatBotButton onClick={onClick}>
-      <FaRobot />
-    </BasicChatBotButton>
-  )
-);
-
-// Separate Badge component
-const BadgeIndicator: React.FC<{
-  count: number;
-}> = ({ count }) => (
-  <NotificationBadge pill bg="danger">
-    {count}
-  </NotificationBadge>
-);
-
 const ChatBot: React.FC<ChatBotProps> = ({ 
   contextualQuestion, 
   isNewUser, 
@@ -311,14 +265,15 @@ const ChatBot: React.FC<ChatBotProps> = ({
               
               <SuggestionContainer>
                 {quickSuggestions.map((suggestion, index) => (
-                  <SuggestionButton 
+                  <Button 
                     key={index}
                     variant="outline-primary" 
                     size="sm"
+                    className="suggestion-button"
                     onClick={() => handleSuggestionClick(suggestion.value)}
                   >
                     {suggestion.text}
-                  </SuggestionButton>
+                  </Button>
                 ))}
               </SuggestionContainer>
               
@@ -343,12 +298,21 @@ const ChatBot: React.FC<ChatBotProps> = ({
       )}
       
       <div className="chat-button-container">
-        <ChatBotButton 
-          onClick={toggleChatBot} 
-          hasBadge={unreadCount > 0}
-        />
+        <Button 
+          onClick={toggleChatBot}
+          className={unreadCount > 0 ? 'chat-button pulse' : 'chat-button'}
+        >
+          <FaRobot />
+        </Button>
+        
         {unreadCount > 0 && (
-          <BadgeIndicator count={unreadCount} />
+          <Badge 
+            pill 
+            bg="danger" 
+            className="notification-badge"
+          >
+            {unreadCount}
+          </Badge>
         )}
       </div>
     </div>
@@ -405,11 +369,6 @@ const SuggestionContainer = styled.div`
   border-top: 1px solid #dee2e6;
 `;
 
-const SuggestionButton = styled(Button)`
-  margin: 0 5px 5px 0;
-  white-space: nowrap;
-`;
-
 const MessageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -447,13 +406,6 @@ const MessageContainer = styled.div`
     align-self: flex-end;
     margin-top: 2px;
   }
-`;
-
-const NotificationBadge = styled(Badge)`
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  font-size: 0.7rem;
 `;
 
 export default ChatBot; 
