@@ -1,33 +1,38 @@
-import { useState, useRef, useContext, useEffect, Fragment } from 'react'
-import Modal from '../../components/UI/Modal/Modal'
-import { EventClickArg } from '@fullcalendar/core'
+import { FC, Fragment, useContext, useEffect, useRef, useState } from 'react'
+import { Button, Col, Nav, Row, Tab } from 'react-bootstrap'
+import toast from 'react-hot-toast'
+import { NetworkStatus, ApolloError } from '@apollo/client'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
 import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction'
-import EventBody, { EventType } from '../../components/EventBody/EventBody'
-import { ApolloError, NetworkStatus } from '@apollo/client'
-import Spinner from '../../components/UI/Spinner/Spinner'
-import Alert from '../../components/UI/Alert/Alert'
-import { IAuth } from '../../types'
-import AuthContext from '../../store/auth-context'
-import {
-  useDeleteEventMutation,
-  useGetEventsLazyQuery,
-  useSaveEventMutation,
-} from '../../generated/graphql'
-import { ServerErrorAlert } from '../../components/ServerErrorAlert/ServerErrorAlert'
-import styled from 'styled-components'
-import toast from 'react-hot-toast'
-import { removeEvent } from '../../utils/apolloCache'
-import client from '../../apollo'
 import { DateTime } from 'luxon'
-import { Button, Row, Col, Tabs, Tab } from 'react-bootstrap'
-import LoginContainer from '../user/LoginContainer/LoginContainer'
+import styled from 'styled-components'
+import { DateClickArg } from '@fullcalendar/interaction'
+import { EventClickArg } from '@fullcalendar/core'
+
+import Alert from '../../components/UI/Alert/Alert'
+import Modal from '../../components/UI/Modal/Modal'
+import Spinner from '../../components/UI/Spinner/Spinner'
+import { ServerErrorAlert } from '../../components/ServerErrorAlert/ServerErrorAlert'
+import AuthContext from '../../store/auth-context'
+import EventBody from '../../components/EventBody/EventBody'
 import EventRegistration from '../../components/EventRegistration'
 import EventAttendees from '../../components/EventAttendees'
-import { useGetEventAttendeesQuery } from '../../interfaces/graphql-types'
 import EventStatsPanel from '../../components/EventStatsPanel'
+import EventRating from '../../components/EventRating'
+import LoginContainer from '../user/LoginContainer/LoginContainer'
+
+import {
+  useDeleteEventMutation as useRemoveEventMutation,
+  useSaveEventMutation,
+  useGetEventsQuery,
+  useGetEventsLazyQuery
+} from '../../generated/graphql'
+import { removeEvent } from '../../utils/apolloCache'
+import client from '../../apollo'
+import { EventType } from '../../components/EventBody/EventBody'
+import { IAuth } from '../../types'
 
 interface ModalBodyType {
   auth: IAuth | null
@@ -108,7 +113,7 @@ function Calendar() {
     onError: setServerError,
   })
 
-  const [deleteEvent, { loading: deleteEventLoading }] = useDeleteEventMutation(
+  const [deleteEvent, { loading: deleteEventLoading }] = useRemoveEventMutation(
     {
       onError: setServerError,
     },
@@ -500,41 +505,75 @@ const ModalBody = ({
       
       {/* Show tabs for event details and statistics for event owners */}
       {isEventOwner && event.id ? (
-        <Tabs
-          activeKey={activeTab}
-          onSelect={(k) => setActiveTab(k || 'details')}
-          className="mb-3"
-        >
-          <Tab eventKey="details" title="Event Details">
+        <Tab.Container defaultActiveKey="details">
+          <Nav variant="tabs" className="mb-3">
+            <Nav.Item>
+              <Nav.Link eventKey="details">Event Details</Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="stats">Event Statistics</Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="rating">Event Rating</Nav.Link>
+            </Nav.Item>
+          </Nav>
+          <Tab.Content>
+            <Tab.Pane eventKey="details">
+              <EventBody
+                event={event}
+                disableEdit={disableEdit}
+                onChangeValue={onChangeValue}
+                onValidate={onValidate}
+              />
+              <EventAttendees eventId={event.id} />
+            </Tab.Pane>
+            <Tab.Pane eventKey="stats">
+              <EventStatsPanel 
+                eventId={event.id}
+                totalSeats={event.number_of_attendees}
+                attendees={event.attendees || []}
+                title={event.title}
+              />
+            </Tab.Pane>
+            <Tab.Pane eventKey="rating">
+              <EventRating eventId={event.id} title={event.title} />
+            </Tab.Pane>
+          </Tab.Content>
+        </Tab.Container>
+      ) : (
+        <>
+          {/* For regular users */}
+          {event.id ? (
+            <Tab.Container defaultActiveKey="details">
+              <Nav variant="tabs" className="mb-3">
+                <Nav.Item>
+                  <Nav.Link eventKey="details">Event Details</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="rating">Event Rating</Nav.Link>
+                </Nav.Item>
+              </Nav>
+              <Tab.Content>
+                <Tab.Pane eventKey="details">
+                  <EventBody
+                    event={event}
+                    disableEdit={disableEdit}
+                    onChangeValue={onChangeValue}
+                    onValidate={onValidate}
+                  />
+                </Tab.Pane>
+                <Tab.Pane eventKey="rating">
+                  <EventRating eventId={event.id} title={event.title} />
+                </Tab.Pane>
+              </Tab.Content>
+            </Tab.Container>
+          ) : (
             <EventBody
               event={event}
               disableEdit={disableEdit}
               onChangeValue={onChangeValue}
               onValidate={onValidate}
             />
-            <EventAttendees eventId={event.id} />
-          </Tab>
-          <Tab eventKey="stats" title="Event Statistics">
-            <EventStatsPanel 
-              eventId={event.id}
-              totalSeats={event.number_of_attendees}
-              attendees={event.attendees || []}
-              title={event.title}
-            />
-          </Tab>
-        </Tabs>
-      ) : (
-        <>
-          <EventBody
-            event={event}
-            disableEdit={disableEdit}
-            onChangeValue={onChangeValue}
-            onValidate={onValidate}
-          />
-          
-          {/* Show attendees list for event owners */}
-          {isEventOwner && event.id && (
-            <EventAttendees eventId={event.id} />
           )}
         </>
       )}

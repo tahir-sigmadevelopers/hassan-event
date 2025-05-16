@@ -1,0 +1,28 @@
+.event-rating-section {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.star-rating {
+  display: flex;
+  align-items: center;
+}
+
+.star-rating-btn {
+  cursor: pointer;
+  padding: 0 2px;
+  transition: transform 0.1s ease-in-out;
+}
+
+.star-rating-btn:hover {
+  transform: scale(1.2);
+}
+
+.reviews-list {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.review-item:last-child hr {
+  display: none;
+} 

@@ -19,6 +19,7 @@ import { constants } from './config/constants'
 import { context } from './middleware/auth'
 import { IContext } from './interfaces/types'
 import attendeesRoute from './routes/attendees'
+import ratingsRoute from './routes/ratings'
 
 dotenv.config()
 
@@ -45,6 +46,7 @@ app.use(urlencoded({ extended: true }))
 
 // API Routes
 app.use('/api/attendees', attendeesRoute)
+app.use('/api/ratings', ratingsRoute)
 
 app.use('/', express.static(`${__dirname}/../build`))
 

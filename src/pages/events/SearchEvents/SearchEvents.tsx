@@ -1,5 +1,5 @@
 import { ApolloError, NetworkStatus } from '@apollo/client'
-import { ChangeEvent, useContext, useEffect, useState } from 'react'
+import { ChangeEvent, useContext, useEffect, useState, FC } from 'react'
 import useDebounce from '../../../hooks/useDebounce'
 import Spinner from '../../../components/UI/Spinner/Spinner'
 import Card, { CardType } from '../../../components/UI/Card/Card'
@@ -8,7 +8,7 @@ import Pagination from '../../../components/Pagination/Pagination'
 import AuthContext from '../../../store/auth-context'
 import Modal from '../../../components/UI/Modal/Modal'
 import EventBody, { EventType } from '../../../components/EventBody/EventBody'
-import { Form, Row, Col, Button, Tabs, Tab } from 'react-bootstrap'
+import { Form, Row, Col, Button, Tabs, Tab, Nav } from 'react-bootstrap'
 import {
   EventFull,
   useDeleteEventMutation,
@@ -24,6 +24,8 @@ import { DateTime } from 'luxon'
 import EventRegistration from '../../../components/EventRegistration'
 import EventAttendees from '../../../components/EventAttendees'
 import EventStatsPanel from '../../../components/EventStatsPanel'
+import EventRating from '../../../components/EventRating'
+import { useNavigate } from 'react-router-dom'
 
 const EVENTS_PER_PAGE = 15
 
@@ -580,19 +582,44 @@ const ModalBody = ({
               title={event.title}
             />
           </Tab>
+          <Tab eventKey="rating" title="Event Rating">
+            <EventRating eventId={event.id} title={event.title} />
+          </Tab>
         </Tabs>
       ) : (
         <>
-          <EventBody
-            event={event}
-            disableEdit={disableEdit}
-            onChangeValue={onChangeValue}
-            onValidate={onValidate}
-          />
-          
-          {/* Show attendees list for event owners */}
-          {isEventOwner && event.id && (
-            <EventAttendees eventId={event.id} />
+          {/* For regular users */}
+          {event.id ? (
+            <Tab.Container defaultActiveKey="details">
+              <Nav variant="tabs" className="mb-3">
+                <Nav.Item>
+                  <Nav.Link eventKey="details">Event Details</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="rating">Event Rating</Nav.Link>
+                </Nav.Item>
+              </Nav>
+              <Tab.Content>
+                <Tab.Pane eventKey="details">
+                  <EventBody
+                    event={event}
+                    disableEdit={disableEdit}
+                    onChangeValue={onChangeValue}
+                    onValidate={onValidate}
+                  />
+                </Tab.Pane>
+                <Tab.Pane eventKey="rating">
+                  <EventRating eventId={event.id} title={event.title} />
+                </Tab.Pane>
+              </Tab.Content>
+            </Tab.Container>
+          ) : (
+            <EventBody
+              event={event}
+              disableEdit={disableEdit}
+              onChangeValue={onChangeValue}
+              onValidate={onValidate}
+            />
           )}
         </>
       )}

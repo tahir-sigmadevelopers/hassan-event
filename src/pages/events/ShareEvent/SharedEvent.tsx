@@ -6,6 +6,7 @@ import Spinner from '../../../components/UI/Spinner/Spinner'
 import { EventFull, useGetEventMutation } from '../../../generated/graphql'
 import { dateToTitle } from '../../../utils/dateTransforms'
 import EventStatsPanel from '../../../components/EventStatsPanel'
+import EventRating from '../../../components/EventRating'
 import AuthContext from '../../../store/auth-context'
 import { Container } from 'react-bootstrap'
 
@@ -125,19 +126,17 @@ const SharedEvent: FC = () => {
       {/* Show event statistics */}
       {id && data?.getEvent.title && (
         <>
-          {console.log('Sending to EventStatsPanel:', { 
-            eventId: id,
-            totalSeats: maxAttendees,
-            isEventOwner,
-            attendees,
-            attendeesLength: attendees.length,
-            title: data?.getEvent.title
-          })}
           <EventStatsPanel 
             eventId={id}
             totalSeats={maxAttendees}
             attendees={attendees} // Always pass the attendees data, the panel will handle permissions
             title={data?.getEvent.title || ''}
+          />
+          
+          {/* Event Ratings and Reviews Section */}
+          <EventRating 
+            eventId={id} 
+            title={data?.getEvent.title || ''} 
           />
         </>
       )}
