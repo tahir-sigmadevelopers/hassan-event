@@ -103,15 +103,7 @@ const CardView: FC<Props> = ({ card }) => {
           ) : null}
         </p>
         
-        {id && !showRegistration && hasAvailableSpots && (
-          <Button 
-            variant="primary" 
-            onClick={handleRegisterClick}
-            className="mt-3"
-          >
-            Register for this Event ({spotCount} {spotCount === 1 ? 'spot' : 'spots'} available)
-          </Button>
-        )}
+   
         
         {id && !showRegistration && !hasAvailableSpots && (
           <Button 

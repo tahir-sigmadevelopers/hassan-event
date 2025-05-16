@@ -8,7 +8,7 @@ import Pagination from '../../../components/Pagination/Pagination'
 import AuthContext from '../../../store/auth-context'
 import Modal from '../../../components/UI/Modal/Modal'
 import EventBody, { EventType } from '../../../components/EventBody/EventBody'
-import { Form, Row, Col, Button } from 'react-bootstrap'
+import { Form, Row, Col, Button, Tabs, Tab } from 'react-bootstrap'
 import {
   EventFull,
   useDeleteEventMutation,
@@ -23,6 +23,7 @@ import { removeEvent } from '../../../utils/apolloCache'
 import { DateTime } from 'luxon'
 import EventRegistration from '../../../components/EventRegistration'
 import EventAttendees from '../../../components/EventAttendees'
+import EventStatsPanel from '../../../components/EventStatsPanel'
 
 const EVENTS_PER_PAGE = 15
 
@@ -500,6 +501,7 @@ const ModalBody = ({
   onValidate,
 }: ModalBodyProps) => {
   const [showRegistration, setShowRegistration] = useState(false);
+  const [activeTab, setActiveTab] = useState('details');
   
   // Calculate available spots if we have the necessary data
   const attendeeCount = event.attendees?.length || 0;
@@ -524,7 +526,7 @@ const ModalBody = ({
   }
   
   return (
-    <div>
+    <div className="pb-3">
       {canRegister && !showRegistration && (
         <Row className="mb-4">
           <Col className="d-flex justify-content-center">
@@ -554,16 +556,45 @@ const ModalBody = ({
         />
       )}
       
-      <EventBody
-        event={event}
-        disableEdit={disableEdit}
-        onChangeValue={onChangeValue}
-        onValidate={onValidate}
-      />
-      
-      {/* Show attendees list for event owners */}
-      {isEventOwner && event.id && (
-        <EventAttendees eventId={event.id} />
+      {/* Show tabs for event details and statistics for event owners */}
+      {isEventOwner && event.id ? (
+        <Tabs
+          activeKey={activeTab}
+          onSelect={(k) => setActiveTab(k || 'details')}
+          className="mb-3"
+        >
+          <Tab eventKey="details" title="Event Details">
+            <EventBody
+              event={event}
+              disableEdit={disableEdit}
+              onChangeValue={onChangeValue}
+              onValidate={onValidate}
+            />
+            <EventAttendees eventId={event.id} />
+          </Tab>
+          <Tab eventKey="stats" title="Event Statistics">
+            <EventStatsPanel 
+              eventId={event.id}
+              totalSeats={event.number_of_attendees}
+              attendees={event.attendees || []}
+              title={event.title}
+            />
+          </Tab>
+        </Tabs>
+      ) : (
+        <>
+          <EventBody
+            event={event}
+            disableEdit={disableEdit}
+            onChangeValue={onChangeValue}
+            onValidate={onValidate}
+          />
+          
+          {/* Show attendees list for event owners */}
+          {isEventOwner && event.id && (
+            <EventAttendees eventId={event.id} />
+          )}
+        </>
       )}
     </div>
   );
