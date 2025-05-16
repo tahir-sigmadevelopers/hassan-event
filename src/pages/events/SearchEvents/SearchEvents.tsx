@@ -524,6 +524,7 @@ const ModalBody = ({
         eventId={event.id}
         availableSpots={availableSpots}
         onSuccess={() => setShowRegistration(false)}
+        eventTitle={event.title}
       />
     );
   }

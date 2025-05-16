@@ -1,17 +1,20 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { useRegisterForEventMutation } from '../../interfaces/graphql-types';
+import { useChatBot } from '../ChatBot/ChatBotProvider';
 
 interface EventRegistrationProps {
   eventId: string;
   availableSpots: number | undefined | null;
   onSuccess?: () => void;
+  eventTitle?: string;
 }
 
 const EventRegistration: FC<EventRegistrationProps> = ({ 
   eventId, 
   availableSpots,
-  onSuccess 
+  onSuccess,
+  eventTitle = 'this event'
 }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,6 +22,7 @@ const EventRegistration: FC<EventRegistrationProps> = ({
   const [additionalInfo, setAdditionalInfo] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { notifyRegistrationComplete } = useChatBot();
 
   const [registerForEvent, { loading }] = useRegisterForEventMutation({
     onError: (error) => {
@@ -33,6 +37,9 @@ const EventRegistration: FC<EventRegistrationProps> = ({
       setEmail('');
       setPhone('');
       setAdditionalInfo('');
+      
+      // Notify chatbot of successful registration
+      notifyRegistrationComplete(eventTitle);
       
       if (onSuccess) {
         onSuccess();

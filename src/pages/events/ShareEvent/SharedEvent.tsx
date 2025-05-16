@@ -1,82 +1,83 @@
-import { FC, useEffect, useState, useContext } from 'react'
-import { useParams } from 'react-router'
+import { FC, useState, useEffect, useContext } from 'react'
+import { Container, Alert } from 'react-bootstrap'
 import CardView from '../../../components/UI/CardView/CardView'
-import Alert from '../../../components/UI/Alert/Alert'
-import Spinner from '../../../components/UI/Spinner/Spinner'
-import { EventFull, useGetEventMutation } from '../../../generated/graphql'
 import { dateToTitle } from '../../../utils/dateTransforms'
-import EventStatsPanel from '../../../components/EventStatsPanel'
-import EventRating from '../../../components/EventRating'
+import { useParams } from 'react-router-dom'
+import { useGetEventQuery } from '../../../generated/graphql'
+import { EventFull } from '../../../generated/graphql'
+import Spinner from '../../../components/UI/Spinner/Spinner'
 import AuthContext from '../../../store/auth-context'
-import { Container } from 'react-bootstrap'
+import EventStatsPanel from '../../../components/EventStatsPanel/EventStatsPanel'
+import EventRating from '../../../components/EventRating/EventRating'
+import { useChatBot } from '../../../components/ChatBot/ChatBotProvider'
 
 const SharedEvent: FC = () => {
-  const [getEvent, { data, loading, error }] = useGetEventMutation()
-  const [attendees, setAttendees] = useState<any[]>([])
-  const [totalAttendees, setTotalAttendees] = useState<number>(0)
-  const [attendeesLoading, setAttendeesLoading] = useState<boolean>(false)
+  const { id } = useParams() as { id: string }
   const { auth } = useContext(AuthContext)
+  const { addContextualQuestion } = useChatBot()
+  const [attendees, setAttendees] = useState<any[]>([])
+  const [attendeesLoading, setAttendeesLoading] = useState(false)
+  const [totalAttendees, setTotalAttendees] = useState<number>(0)
 
-  const { id } = useParams()
+  const { loading, data } = useGetEventQuery({
+    variables: { id },
+    fetchPolicy: 'cache-and-network',
+  })
 
+  // Fetch attendees data when event loads
   useEffect(() => {
-    getEvent({ variables: { id: id ?? '' } })
-  }, [getEvent, id])
-
-  useEffect(() => {
-    // If we have an event ID, fetch attendees
     if (id) {
-      setAttendeesLoading(true)
-      fetch(`/api/attendees/${id}`)
-        .then(response => response.json())
-        .then(data => {
-          console.log('Raw attendee data:', data);
-          
-          if (data.success && data.attendees) {
-            // Format attendees data to match what EventStatsPanel expects
-            const formattedAttendees = data.attendees.map((attendee: any) => ({
-              id: attendee._id || attendee.id || String(Math.random()),
-              name: attendee.name || 'Unknown',
-              email: attendee.email || '',
-              phone: attendee.phone || '',
-              status: attendee.status || 'registered',
-              createdAt: attendee.createdAt ? new Date(attendee.createdAt).getTime() : Date.now()
-            }));
-            
-            console.log('Formatted attendees:', formattedAttendees);
-            setAttendees(formattedAttendees);
-            setTotalAttendees(data.attendees.length);
-          } else {
-            // If no attendees or error, set empty array
-            setAttendees([]);
-            setTotalAttendees(0);
-            console.log('No attendees found or error in response');
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching attendees:', error)
-          setAttendees([]);
-          setTotalAttendees(0);
-        })
-        .finally(() => {
-          setAttendeesLoading(false)
-        })
+      fetchAttendees()
     }
   }, [id])
 
-  if (loading || attendeesLoading) {
+  // Add contextual help for shared events
+  useEffect(() => {
+    if (data?.getEvent.title) {
+      const eventTitle = data.getEvent.title;
+      // Wait a moment before showing the suggestion
+      setTimeout(() => {
+        addContextualQuestion(`help with ${eventTitle} event`);
+      }, 3000);
+    }
+  }, [data, addContextualQuestion]);
+
+  const fetchAttendees = async () => {
+    if (!id) return
+    
+    setAttendeesLoading(true)
+    try {
+      const response = await fetch(`/api/attendees/${id}`)
+      const data = await response.json()
+      
+      if (data.success && data.attendees) {
+        setAttendees(data.attendees)
+        setTotalAttendees(data.attendees.length)
+      } else {
+        setAttendees([])
+        setTotalAttendees(0)
+      }
+    } catch (error) {
+      console.error('Error fetching attendees:', error)
+      setAttendees([])
+      setTotalAttendees(0)
+    } finally {
+      setAttendeesLoading(false)
+    }
+  }
+
+  if (loading) {
     return <Spinner />
   }
 
-  if (error) {
-    return <Alert msg={error.message} type='danger' dismissible={false} />
+  if (!data?.getEvent) {
+    return <Alert variant="danger">Event not found</Alert>
   }
 
   // Calculate available spots
   const maxAttendees = data?.getEvent.number_of_attendees || 0
   const availableSpots = Math.max(0, maxAttendees - totalAttendees)
 
-  // Check if the current user is the event creator
   const creatorData = data?.getEvent.createdBy as any;
   const creatorId = creatorData?._id || creatorData?.id;
   const isEventOwner = auth && auth.userId === creatorId && id;

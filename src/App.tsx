@@ -6,6 +6,7 @@ import AuthContext from './store/auth-context'
 import AppRoutes from './Routes'
 import { Container } from 'react-bootstrap'
 import Footer from './components/Footer/Footer'
+import ChatBotProvider from './components/ChatBot/ChatBotProvider'
 
 import './App.css'
 import { Toaster } from 'react-hot-toast'
@@ -22,15 +23,17 @@ function App() {
 
   return (
     <>
-      <RoutesContainer>
-        {auth && <UserIdleTimer onLogout={removeAuth} />}
+      <ChatBotProvider>
+        <RoutesContainer>
+          {auth && <UserIdleTimer onLogout={removeAuth} />}
 
-        <ApolloProvider client={client}>
-          <AppRoutes />
-        </ApolloProvider>
-      </RoutesContainer>
-      {!welcomePagePath && <Footer />}
-      <Toaster />
+          <ApolloProvider client={client}>
+            <AppRoutes />
+          </ApolloProvider>
+        </RoutesContainer>
+        {!welcomePagePath && <Footer />}
+        <Toaster />
+      </ChatBotProvider>
     </>
   )
 }

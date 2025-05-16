@@ -1,10 +1,12 @@
 import { useState, Fragment, useContext, FC } from 'react'
-import { Container, Form, Nav, Navbar } from 'react-bootstrap'
+import { Container, Form, Nav, Navbar, Button } from 'react-bootstrap'
 import { NavLink } from 'react-router-dom'
+import { FaRobot } from 'react-icons/fa'
 import AuthContext from '../../store/auth-context'
 import LoginContainer from '../../pages/user/LoginContainer/LoginContainer'
 import MyAccount from '../../pages/user/MyAccount/MyAccount'
 import { Switch, useDarkreader } from 'react-darkreader'
+import { useChatBot } from '../ChatBot/ChatBotProvider'
 
 const MainNavbar: FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false)
@@ -13,6 +15,7 @@ const MainNavbar: FC = () => {
   const [isDark, { toggle }] = useDarkreader(
     localStorage.getItem('react-event-scheduler-theme') === 'dark',
   )
+  const { addContextualQuestion } = useChatBot()
 
   const { auth, removeAuth } = useContext(AuthContext)
 
@@ -25,6 +28,12 @@ const MainNavbar: FC = () => {
   const handleSignupBtnClick = () => {
     setView('Signup')
     setShowModal(true)
+    setIsExpanded(false)
+  }
+
+  const handleChatBotClick = () => {
+    // Trigger a help suggestion in the ChatBot
+    addContextualQuestion('help')
     setIsExpanded(false)
   }
 
@@ -101,6 +110,16 @@ const MainNavbar: FC = () => {
                 Calendar
               </NavLink>
             </Nav>
+            <div className='me-2'>
+              <Button 
+                variant="outline-primary" 
+                size="sm"
+                className="me-2"
+                onClick={handleChatBotClick}
+              >
+                <FaRobot className="me-1" /> Help
+              </Button>
+            </div>
             <div className='me-4'>
               <Switch
                 checked={isDark}
