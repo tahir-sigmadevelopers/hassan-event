@@ -65,6 +65,25 @@ const defaultMessages: Message[] = [
   }
 ];
 
+// Simple Button component with no conditionals
+const ChatBotButton: React.FC<{
+  onClick: () => void;
+  hasBadge?: boolean;
+}> = ({ onClick, hasBadge }) => (
+  <StyledChatBotButton onClick={onClick} className={hasBadge ? 'pulse' : ''}>
+    <FaRobot />
+  </StyledChatBotButton>
+);
+
+// Separate Badge component
+const BadgeIndicator: React.FC<{
+  count: number;
+}> = ({ count }) => (
+  <NotificationBadge pill bg="danger">
+    {count}
+  </NotificationBadge>
+);
+
 const ChatBot: React.FC<ChatBotProps> = ({ 
   contextualQuestion, 
   isNewUser, 
@@ -296,19 +315,20 @@ const ChatBot: React.FC<ChatBotProps> = ({
         </ChatWindow>
       )}
       
-      <ChatBotButton onClick={toggleChatBot} className={unreadCount > 0 ? 'pulse' : ''}>
-        <FaRobot />
+      <div className="chat-button-container">
+        <ChatBotButton 
+          onClick={toggleChatBot} 
+          hasBadge={unreadCount > 0}
+        />
         {unreadCount > 0 && (
-          <NotificationBadge pill bg="danger">
-            {unreadCount}
-          </NotificationBadge>
+          <BadgeIndicator count={unreadCount} />
         )}
-      </ChatBotButton>
+      </div>
     </div>
   );
 };
 
-// Styled components
+// Styled components with explicit types
 const ChatWindow = styled(Card)<{ isMinimized: boolean }>`
   position: fixed;
   bottom: 80px;
@@ -402,10 +422,8 @@ const MessageContainer = styled.div`
   }
 `;
 
-const ChatBotButton = styled(Button)`
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+// Separate styled component to avoid complex union type
+const StyledChatBotButton = styled(Button)`
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -414,10 +432,13 @@ const ChatBotButton = styled(Button)`
   justify-content: center;
   align-items: center;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
   
   &:hover {
     background-color: #0069d9;
+  }
+  
+  &.pulse {
+    animation: pulse 2s infinite;
   }
 `;
 

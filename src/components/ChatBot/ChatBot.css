@@ -2,6 +2,13 @@
   z-index: 1000;
 }
 
+.chat-button-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
 .message {
   animation: fadeIn 0.3s ease;
 }

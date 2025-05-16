@@ -1,15 +1,17 @@
 import { FC, useState, useEffect, useContext } from 'react'
-import { Container, Alert } from 'react-bootstrap'
+import { Container } from 'react-bootstrap'
+import Alert from 'react-bootstrap/Alert'
 import CardView from '../../../components/UI/CardView/CardView'
 import { dateToTitle } from '../../../utils/dateTransforms'
 import { useParams } from 'react-router-dom'
-import { useGetEventQuery } from '../../../generated/graphql'
+import { useGetEventMutation } from '../../../generated/graphql'
 import { EventFull } from '../../../generated/graphql'
 import Spinner from '../../../components/UI/Spinner/Spinner'
 import AuthContext from '../../../store/auth-context'
 import EventStatsPanel from '../../../components/EventStatsPanel/EventStatsPanel'
 import EventRating from '../../../components/EventRating/EventRating'
 import { useChatBot } from '../../../components/ChatBot/ChatBotProvider'
+import UIAlert from '../../../components/UI/Alert/Alert'
 
 const SharedEvent: FC = () => {
   const { id } = useParams() as { id: string }
@@ -19,17 +21,17 @@ const SharedEvent: FC = () => {
   const [attendeesLoading, setAttendeesLoading] = useState(false)
   const [totalAttendees, setTotalAttendees] = useState<number>(0)
 
-  const { loading, data } = useGetEventQuery({
-    variables: { id },
-    fetchPolicy: 'cache-and-network',
+  const [getEvent, { loading, data }] = useGetEventMutation({
+    variables: { id }
   })
 
-  // Fetch attendees data when event loads
+  // Fetch event and attendees data when component loads
   useEffect(() => {
     if (id) {
+      getEvent({ variables: { id } })
       fetchAttendees()
     }
-  }, [id])
+  }, [id, getEvent])
 
   // Add contextual help for shared events
   useEffect(() => {
@@ -117,7 +119,7 @@ const SharedEvent: FC = () => {
       
       {/* Debug message for event owners */}
       {isEventOwner && attendees.length === 0 && !attendeesLoading && (
-        <Alert 
+        <UIAlert 
           msg="You are the event owner but no attendee data was found. This might be a data loading issue." 
           type="info" 
           dismissible={true} 
