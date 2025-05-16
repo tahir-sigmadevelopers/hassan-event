@@ -65,14 +65,41 @@ const defaultMessages: Message[] = [
   }
 ];
 
-// Simple Button component with no conditionals
+// Basic button styling without conditional classes
+const BasicChatBotButton = styled(Button)`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #007bff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  
+  &:hover {
+    background-color: #0069d9;
+  }
+`;
+
+// Pulsing button that extends the basic button
+const PulsingChatBotButton = styled(BasicChatBotButton)`
+  animation: pulse 2s infinite;
+`;
+
+// Simplified button component without conditional rendering
 const ChatBotButton: React.FC<{
   onClick: () => void;
-  hasBadge?: boolean;
+  hasBadge: boolean;
 }> = ({ onClick, hasBadge }) => (
-  <StyledChatBotButton onClick={onClick} className={hasBadge ? 'pulse' : ''}>
-    <FaRobot />
-  </StyledChatBotButton>
+  hasBadge ? (
+    <PulsingChatBotButton onClick={onClick}>
+      <FaRobot />
+    </PulsingChatBotButton>
+  ) : (
+    <BasicChatBotButton onClick={onClick}>
+      <FaRobot />
+    </BasicChatBotButton>
+  )
 );
 
 // Separate Badge component
@@ -419,26 +446,6 @@ const MessageContainer = styled.div`
     color: #6c757d;
     align-self: flex-end;
     margin-top: 2px;
-  }
-`;
-
-// Separate styled component to avoid complex union type
-const StyledChatBotButton = styled(Button)`
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #007bff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  
-  &:hover {
-    background-color: #0069d9;
-  }
-  
-  &.pulse {
-    animation: pulse 2s infinite;
   }
 `;
 
