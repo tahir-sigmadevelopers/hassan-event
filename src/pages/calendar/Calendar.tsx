@@ -367,6 +367,7 @@ function Calendar() {
       <Modal
         title={modal.title}
         show={modal.show}
+        size="xl"
         actionBtnFlags={{
           hideSubmitBtn: hideSaveBtn,
           disableSubmitBtn: disableSaveBtn,

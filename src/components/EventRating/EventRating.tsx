@@ -210,14 +210,14 @@ const EventRating: FC<EventRatingProps> = ({ eventId, title }) => {
     }
   };
 
-  const renderStars = (rating: number) => {
+  const renderStars = (rating: number, size = 20) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
         i <= rating ? (
-          <FaStar key={i} className="text-warning" />
+          <FaStar key={i} className="text-warning" size={size} />
         ) : (
-          <FaRegStar key={i} className="text-warning" />
+          <FaRegStar key={i} className="text-warning" size={size} />
         )
       );
     }
@@ -321,7 +321,7 @@ const EventRating: FC<EventRatingProps> = ({ eventId, title }) => {
         <h5>Reviews & Ratings</h5>
         <div className="d-flex align-items-center">
           <span className="me-2 fw-bold">{averageRating}</span>
-          {renderStars(averageRating)}
+          {renderStars(averageRating, 24)}
           <Badge bg="secondary" className="ms-2">
             {ratings.length} {ratings.length === 1 ? 'review' : 'reviews'}
           </Badge>
@@ -349,7 +349,7 @@ const EventRating: FC<EventRatingProps> = ({ eventId, title }) => {
                     </div>
                   </div>
                   <div className="d-flex align-items-center">
-                    {renderStars(rating.rating)}
+                    {renderStars(rating.rating, 18)}
                     
                     {auth?.userId === rating.userId && !isEditing && (
                       <Button 
@@ -376,8 +376,8 @@ const EventRating: FC<EventRatingProps> = ({ eventId, title }) => {
   return (
     <div className="event-rating-section">
       <h4 className="mb-4">Feedback for "{title}"</h4>
-      <Row>
-        <Col lg={4}>
+      <Row className="g-4">
+        <Col lg={4} md={12}>
           {!userHasRated || isEditing ? renderRatingForm() : (
             <Card className="mb-4">
               <Card.Header>
@@ -385,7 +385,7 @@ const EventRating: FC<EventRatingProps> = ({ eventId, title }) => {
               </Card.Header>
               <Card.Body>
                 <div className="d-flex align-items-center mb-3">
-                  {renderStars(userRating)}
+                  {renderStars(userRating, 24)}
                 </div>
                 <p>{review}</p>
                 <Button 
@@ -398,7 +398,7 @@ const EventRating: FC<EventRatingProps> = ({ eventId, title }) => {
             </Card>
           )}
         </Col>
-        <Col lg={8}>
+        <Col lg={8} md={12}>
           {renderRatings()}
         </Col>
       </Row>

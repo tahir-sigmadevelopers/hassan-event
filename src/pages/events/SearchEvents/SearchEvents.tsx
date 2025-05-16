@@ -446,6 +446,7 @@ function SearchEvents() {
       <Modal
         title={modal.title}
         show={modal.show}
+        size="xl"
         actionBtnFlags={{
           disableSubmitBtn: disableSaveBtn,
           hideSubmitBtn: hideSaveBtn,

@@ -21,8 +21,26 @@
 .reviews-list {
   max-height: 600px;
   overflow-y: auto;
+  padding-right: 10px;
 }
 
 .review-item:last-child hr {
   display: none;
+}
+
+/* Responsive adjustments for modal view */
+@media (max-width: 992px) {
+  .event-rating-section .row {
+    flex-direction: column;
+  }
+  
+  .event-rating-section .col-lg-4,
+  .event-rating-section .col-lg-8 {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .reviews-list {
+    max-height: 400px;
+  }
 } 

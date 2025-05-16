@@ -29,6 +29,7 @@ type Props = {
   onClose: () => void
   onDelete?: () => void
   onSubmit: () => void
+  size?: 'sm' | 'lg' | 'xl'
 }
 
 const Modal: FC<Props> = ({
@@ -41,6 +42,7 @@ const Modal: FC<Props> = ({
   onClose,
   onSubmit,
   onDelete,
+  size = 'lg',
 }) => {
   const {
     submitBtnName,
@@ -59,6 +61,8 @@ const Modal: FC<Props> = ({
       backdrop='static'
       keyboard={false}
       onHide={onClose}
+      size={size}
+      dialogClassName="modal-wide"
     >
       <ModalBootstrap.Header closeButton={closeButton}>
         <ModalBootstrap.Title>{title}</ModalBootstrap.Title>
@@ -101,5 +105,21 @@ export const StyledModal = styled.div.attrs(() => ({
     }
   }
 `
+
+// Add custom CSS to the document to style modals better
+const style = document.createElement('style');
+style.textContent = `
+  .modal-wide {
+    min-width: 80%;
+    max-width: 1200px;
+  }
+  
+  @media (max-width: 768px) {
+    .modal-wide {
+      min-width: 95%;
+    }
+  }
+`;
+document.head.appendChild(style);
 
 export default Modal
